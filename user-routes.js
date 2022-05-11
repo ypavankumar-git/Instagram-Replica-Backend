@@ -130,7 +130,8 @@ app.post('/signup', function(req, res) {
   var profile = _.pick(req.body, userScheme.type, 'username', 'fullname', 'extra');
   profile.id = _.max(users, 'id').id + 1;
 
-  profile.password = decrypt(req.body.password, config.secret);
+  //profile.password = decrypt(req.body.password, config.secret);
+  profile.password = req.body.password;
 
   console.log("profile is" + profile);
 
@@ -163,8 +164,9 @@ app.post('/login', function(req, res) {
 
   //user.password = decrypt(user.password, config.secret);
 
-  received_password = decrypt(req.body.password, config.secret);
-  console.log(user.password + " and " + received_password);
+  //received_password = decrypt(req.body.password, config.secret);
+  //console.log(user.password + " and " + received_password);
+  received_password = req.body.password;
 
   if (user.password !== received_password) {
     //console.log("saved password: " + user.password + ",received");

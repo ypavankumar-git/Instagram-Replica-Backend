@@ -1,0 +1,5 @@
+{
+  "secret": "kangayam",
+  "audience": "nodejs-jwt-auth",
+  "issuer": "https://gonto.com"
+}
