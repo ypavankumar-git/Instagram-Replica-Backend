@@ -1,22 +1,21 @@
 const { MongoClient } = require('mongodb');
-         operations   = require("./crudOperations");
-         constants = require('../constants/constants');
+const dbConstants = require('../constants/dbConstants');
 
 exports.getClient = async () => {
+  const uri = dbConstants.dbUrl
+    .replace('username', dbConstants.dbUserName)
+    .replace('password', dbConstants.dbPassword)
+    .replace('dbname', dbConstants.dbUserDetailsTableName);
 
-    const uri = "mongodb://pavan:pavan@cluster0-shard-00-00.xoonf.mongodb.net:27017,cluster0-shard-00-01.xoonf.mongodb.net:27017,cluster0-shard-00-02.xoonf.mongodb.net:27017/UserDetails?ssl=true&replicaSet=atlas-54c60b-shard-0&authSource=admin&retryWrites=true&w=majority";
-    
-    console.log(uri);
-   try{
-    const client = MongoClient.connect(uri)
+  try {
+    const client = MongoClient.connect(uri);
     return client;
-
-}catch(e) {
-    console.log(e);
-}
-}
+  } catch (e) {
+    return 'DB Connection Error';
+  }
+};
 
 exports.closeClient = async (client) => {
-    const result = await client.close();
-    return result;
-}
+  const result = await client.close();
+  return result;
+};

@@ -1,12 +1,12 @@
-var logger          = require('morgan'),
-    cors            = require('cors'),
-    http            = require('http'),
-    express         = require('express'),
-    errorhandler    = require('errorhandler'),
-    dotenv          = require('dotenv'),
-    bodyParser      = require('body-parser');
+const logger = require('morgan');
+const cors = require('cors');
+const http = require('http');
+const express = require('express');
+const errorhandler = require('errorhandler');
+const dotenv = require('dotenv');
+const bodyParser = require('body-parser');
 
-var app = express();
+const app = express();
 
 dotenv.load();
 
@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
 
-app.use(function(err, req, res, next) {
+app.use((err, req, res, next) => {
   if (err.name === 'StatusError') {
     res.send(err.status, err.message);
   } else {
@@ -28,16 +28,13 @@ app.use(function(err, req, res, next) {
 
 if (process.env.NODE_ENV === 'development') {
   app.use(logger('dev'));
-  app.use(errorhandler())
+  app.use(errorhandler());
 }
 
-app.use(require('./src/routes/anonymous-routes'));
-app.use(require('./src/routes/protected-routes'));
+// app.use(require('./src/routes/anonymous-routes'));
+// app.use(require('./src/routes/protected-routes'));
 app.use(require('./src/routes/user-routes'));
 
-var port = process.env.PORT || 3001;
+const port = process.env.PORT || 3001;
 
-http.createServer(app).listen(port, function (err) {
-  console.log('listening in http://localhost:' + port);
-});
-
+http.createServer(app).listen(port, () => {});
