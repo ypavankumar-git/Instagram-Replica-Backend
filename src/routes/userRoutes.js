@@ -1,21 +1,22 @@
-const express = require('express');
-const _ = require('lodash');
-const jwt = require('jsonwebtoken');
-const crypto = require('../encryption_service/service');
-const crud = require('../mongo/crudOperations');
-const connection = require('../mongo/connectionOperations');
-const dbConstants = require('../constants/dbConstants');
-const messageConstants = require('../constants/messageConstants');
-const urlConstants = require('../constants/urlConstants');
+const express = require("express");
+const _ = require("lodash");
+const jwt = require("jsonwebtoken");
+const crypto = require("../encryptionService/service");
+const crud = require("../mongo/crudOperations");
+const connection = require("../mongo/connectionOperations");
+const messageConstants = require("../constants/messageConstants");
+const urlConstants = require("../constants/urlConstants");
 
 const router = express.Router();
 const app = router;
 
 const secret = process.env.SECRET;
+const dbTableName = process.env.DB_USERDETAILS_TABLE_NAME;
+const dbCollectionName = process.env.DB_USERDETAILS_COLLECTION_NAME;
 
 function createIdToken(user) {
-  return jwt.sign(_.omit(user, 'password'), secret, {
-    expiresIn: '10s',
+  return jwt.sign(_.omit(user, "password"), secret, {
+    expiresIn: "10s",
   });
 }
 
@@ -66,13 +67,15 @@ app.post(urlConstants.signupUrl, async (req, res) => {
   if (!userScheme.username || !userScheme.password) {
     return res.status(400).send(messageConstants.noUserNamePassword);
   }
-
-  const client = await connection.getClient();
-  const collection = await client
-    .db(dbConstants.dbUserDetailsTableName)
-    .collection(dbConstants.dbUserDetailsCollectionName);
-  await crud.insertUser(collection, userScheme);
-
+  try {
+    const client = await connection.getClient();
+    const collection = await client
+      .db(dbTableName)
+      .collection(dbCollectionName);
+    await crud.insertUser(collection, userScheme);
+  } catch (err) {
+    return res.status(500).send();
+  }
   return res.status(201).send({
     id_token: createIdToken(userScheme),
   });
@@ -80,6 +83,7 @@ app.post(urlConstants.signupUrl, async (req, res) => {
 
 app.post(urlConstants.loginUrl, async (req, res) => {
   const userScheme = getUserSchemeForLogin(req);
+  let user;
 
   if (!userScheme || !req.body.password) {
     return res
@@ -87,16 +91,19 @@ app.post(urlConstants.loginUrl, async (req, res) => {
       .send({ message: messageConstants.noUserNamePassword });
   }
 
-  const client = await connection.getClient();
-  const collection = await client
-    .db(dbConstants.dbUserDetailsTableName)
-    .collection(dbConstants.dbUserDetailsCollectionName);
-  const user = await crud.findUser(collection, userScheme);
+  try {
+    const client = await connection.getClient();
+    const collection = await client
+      .db(dbTableName)
+      .collection(dbCollectionName);
+    user = await crud.findUser(collection, userScheme);
+  } catch (err) {
+    return res.status(500).send();
+  }
 
   if (!user) {
     return res.status(401).send({ message: messageConstants.wrongUserName });
   }
-
   const dbPassword = await crypto.decrypt(user.password, secret);
   const bodyPassword = await crypto.decrypt(req.body.password, secret);
 
@@ -110,10 +117,14 @@ app.post(urlConstants.loginUrl, async (req, res) => {
 });
 
 app.post(urlConstants.checkIdUrl, async (req, res) => {
-  const client = await connection.getClient();
-  const collection = await client
-    .db(dbConstants.dbUserDetailsTableName)
-    .collection(dbConstants.dbUserDetailsCollectionName);
+  let collection;
+
+  try {
+    const client = await connection.getClient();
+    collection = await client.db(dbTableName).collection(dbCollectionName);
+  } catch (err) {
+    return res.status(500).send();
+  }
   let user;
 
   if (req.body.mobile) {
@@ -140,10 +151,15 @@ app.post(urlConstants.checkIdUrl, async (req, res) => {
 });
 
 app.post(urlConstants.checkUserNameUrl, async (req, res) => {
-  const client = await connection.getClient();
-  const collection = await client
-    .db(dbConstants.dbUserDetailsTableName)
-    .collection(dbConstants.dbUserDetailsCollectionName);
+  let collection;
+
+  try {
+    const client = await connection.getClient();
+    collection = await client.db(dbTableName).collection(dbCollectionName);
+  } catch (err) {
+    return res.status(500).send();
+  }
+
   let user;
 
   if (req.body.username) {

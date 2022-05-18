@@ -1,18 +1,18 @@
-const { MongoClient } = require('mongodb');
-const dbConstants = require('../constants/dbConstants');
+const { MongoClient } = require("mongodb");
 
 exports.getClient = async () => {
-  const uri = dbConstants.dbUrl
-    .replace('username', dbConstants.dbUserName)
-    .replace('password', dbConstants.dbPassword)
-    .replace('dbname', dbConstants.dbUserDetailsTableName);
+  const dbUri = process.env.DB_URI;
+  const dbUserName = process.env.DB_USERNAME;
+  const dbPassword = process.env.DB_PASSWORD;
+  const dbTableName = process.env.DB_USERDETAILS_TABLE_NAME;
 
-  try {
-    const client = MongoClient.connect(uri);
-    return client;
-  } catch (e) {
-    return 'DB Connection Error';
-  }
+  const uri = dbUri
+    .replace("username", dbUserName)
+    .replace("password", dbPassword)
+    .replace("dbTablename", dbTableName);
+
+  const client = MongoClient.connect(uri);
+  return client;
 };
 
 exports.closeClient = async (client) => {
